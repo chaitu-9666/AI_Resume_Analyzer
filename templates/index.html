@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Resume Analyzer</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ========== BASE ========== */
+body {
+    font-family: 'Inter', sans-serif;
+    background: #eef2f3;
+    margin: 0;
+    padding: 0;
+    transition: background 0.3s, color 0.3s;
+}
+
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: background 0.3s;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+label {
+    font-weight: 600;
+    display: block;
+    margin-top: 15px;
+}
+
+textarea {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    margin-top: 8px;
+    resize: vertical;
+}
+
+button {
+    display: block;
+    margin: 25px auto;
+    padding: 12px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+button.secondary {
+    background: #374151;
+}
+
+.toggle-dark {
+    float: right;
+    padding: 6px 14px;
+    font-size: 13px;
+    border-radius: 20px;
+    background: #111827;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.result-card {
+    margin-top: 20px;
+    padding: 25px;
+    border-radius: 14px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+}
+
+/* ========== DRAG & DROP PDF ========== */
+.drop-zone {
+    margin-top: 10px;
+    padding: 25px;
+    border: 2px dashed #94a3b8;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    color: #475569;
+}
+
+.drop-zone.dragover {
+    background: #e0f2fe;
+    border-color: #2563eb;
+}
+
+/* ========== CIRCULAR PROGRESS ========== */
+.circle-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.circular-progress {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: conic-gradient(
+        var(--color) calc(var(--percentage) * 1%),
+        #e5e7eb 0%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+/* ========== LISTS ========== */
+.skills-found li { color: #15803d; }
+.missing-skills li { color: #b91c1c; }
+
+/* ========== FOOTER ========== */
+footer {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* ========== DARK MODE ========== */
+body.dark {
+    background: #020617;
+    color: #e5e7eb;
+}
+
+body.dark .container,
+body.dark .result-card {
+    background: #020617;
+    border-color: #334155;
+}
+
+body.dark textarea {
+    background: #020617;
+    color: #e5e7eb;
+    border: 1px solid #334155;
+}
+
+body.dark .drop-zone {
+    border-color: #475569;
+    color: #cbd5f5;
+}
+
+body.dark footer {
+    color: #9ca3af;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<button class="toggle-dark" onclick="toggleDarkMode()">🌙 Dark</button>
+
+{% if not result %}
+<!-- ================= FORM ================= -->
+<h1>🤖 AI Resume Analyzer</h1>
+
+<form method="POST" enctype="multipart/form-data">
+
+<label>Resume</label>
+<textarea name="resume" rows="6" placeholder="Paste your resume here (optional)"></textarea>
+
+<div class="drop-zone" id="dropZone">
+    📄 Drag & Drop Resume PDF here<br>
+    <small>or click to upload</small>
+    <input type="file" name="resume_pdf" id="fileInput" accept=".pdf" hidden>
+</div>
+
+<label>Job Description</label>
+<textarea name="jd" rows="6" placeholder="Paste job description here"></textarea>
+
+<button type="submit">Analyze Resume</button>
+</form>
+
+{% else %}
+<!-- ================= RESULTS ================= -->
+
+<form method="GET">
+    <button class="secondary">⬅ Back to Upload</button>
+</form>
+
+<div class="result-card">
+
+<div class="circle-container">
+<div class="circular-progress"
+     style="
+     --percentage: {{ result.match_percentage | int }};
+     --color:
+        {% if result.match_percentage | int >= 75 %}
+            #22c55e
+        {% elif result.match_percentage | int >= 50 %}
+            #facc15
+        {% else %}
+            #ef4444
+        {% endif %}
+     ">
+    {{ result.match_percentage }}%
+</div>
+</div>
+
+<h3>✅ Skills Found</h3>
+<ul class="skills-found">
+{% for skill in result.skills_found %}
+<li>{{ skill }}</li>
+{% endfor %}
+</ul>
+
+<h3>❌ Missing Skills</h3>
+<ul class="missing-skills">
+{% for skill in result.missing_skills %}
+<li>{{ skill }}</li>
+{% endfor %}
+</ul>
+
+<h3>💡 Suggestions</h3>
+<ul>
+{% for tip in result.suggestions %}
+<li>{{ tip }}</li>
+{% endfor %}
+</ul>
+
+</div>
+{% endif %}
+
+<footer>
+Developed by <b>Chaitanya (BCA)</b>
+</footer>
+
+</div>
+
+<script>
+/* Dark mode toggle */
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+}
+
+/* Drag & Drop */
+const dropZone = document.getElementById("dropZone");
+const fileInput = document.getElementById("fileInput");
+
+if (dropZone) {
+    dropZone.addEventListener("click", () => fileInput.click());
+
+    dropZone.addEventListener("dragover", e => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("dragover");
+    });
+
+    dropZone.addEventListener("drop", e => {
+        e.preventDefault();
+        fileInput.files = e.dataTransfer.files;
+        dropZone.classList.remove("dragover");
+        dropZone.innerHTML = "📄 " + e.dataTransfer.files[0].name;
+    });
+}
+</script>
+
+</body>
+</html>
