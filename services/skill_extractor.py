@@ -1,12 +1,18 @@
 import spacy
 from utils.skills_db import SKILLS
 
-nlp = spacy.load("en_core_web_sm")
+try:
+    nlp = spacy.load("en_core_web_sm")
+    SPACY_AVAILABLE = True
+except OSError:
+    SPACY_AVAILABLE = False
+    nlp = None
 
 def extract_skills(text):
-    doc = nlp(text)
+    if SPACY_AVAILABLE and nlp is not None:
+        doc = nlp(text)
+    
     found_skills = set()
-
     text_lower = text.lower()
 
     for skill in SKILLS:
