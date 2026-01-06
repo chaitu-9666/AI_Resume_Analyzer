@@ -172,14 +172,20 @@ body.dark footer {
 <!-- ================= FORM ================= -->
 <h1>🤖 AI Resume Analyzer</h1>
 
+{% if error_message %}
+<div style="background: #fee2e2; border: 1px solid #ef4444; color: #991b1b; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+    ⚠️ {{ error_message }}
+</div>
+{% endif %}
+
 <form method="POST" enctype="multipart/form-data">
 
 <label>Resume</label>
 <textarea name="resume" rows="6" placeholder="Paste your resume here (optional)"></textarea>
 
 <div class="drop-zone" id="dropZone">
-    📄 Drag & Drop Resume PDF here<br>
-    <small>or click to upload</small>
+    <span id="dropZoneText">📄 Drag & Drop Resume PDF here<br>
+    <small>or click to upload</small></span>
     <input type="file" name="resume_pdf" id="fileInput" accept=".pdf" hidden>
 </div>
 
@@ -254,9 +260,22 @@ function toggleDarkMode() {
 /* Drag & Drop */
 const dropZone = document.getElementById("dropZone");
 const fileInput = document.getElementById("fileInput");
+const dropZoneText = document.getElementById("dropZoneText");
 
-if (dropZone) {
+function updateFileDisplay(fileName) {
+    if (dropZoneText) {
+        dropZoneText.innerHTML = `📄 ${fileName}<br><small>Click to change file</small>`;
+    }
+}
+
+if (dropZone && fileInput) {
     dropZone.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            updateFileDisplay(e.target.files[0].name);
+        }
+    });
 
     dropZone.addEventListener("dragover", e => {
         e.preventDefault();
@@ -269,9 +288,12 @@ if (dropZone) {
 
     dropZone.addEventListener("drop", e => {
         e.preventDefault();
-        fileInput.files = e.dataTransfer.files;
         dropZone.classList.remove("dragover");
-        dropZone.innerHTML = "📄 " + e.dataTransfer.files[0].name;
+        
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            updateFileDisplay(e.dataTransfer.files[0].name);
+        }
     });
 }
 </script>
